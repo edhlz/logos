@@ -1,0 +1,15 @@
+/target
+**/target
+**/*.rs.bk
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Env / secrets
+.env
+.env.*
+
+# Copilot/agent artifacts
+.agents/

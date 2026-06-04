@@ -1,0 +1,12 @@
+[package]
+name = "network"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+protocol = { path = "../protocol" }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
