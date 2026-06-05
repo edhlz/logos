@@ -1,12 +1,13 @@
 use anyhow::{anyhow, Result};
 use protocol::{
     handshake::decode_handshake,
+    login::{decode_login_start, make_login_success, OFFLINE_UUID},
     packet::Packet,
     status::{make_pong, make_status_response, PING_ID, STATUS_REQUEST_ID},
 };
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::{info, warn};
+use tracing::{info};
 
 async fn read_varint_async(stream: &mut TcpStream) -> Result<i32> {
     let mut num_read = 0usize;
@@ -53,9 +54,7 @@ pub async fn handle_client(mut stream: TcpStream) -> Result<()> {
 
     match handshake.next_state {
         1 => handle_status(&mut stream).await?,
-        2 => {
-            warn!("login state not implemented yet");
-        }
+        2 => handle_login(&mut stream).await?,
         other => {
             return Err(anyhow!("unknown next state: {}", other));
         }
@@ -85,6 +84,21 @@ async fn handle_status(stream: &mut TcpStream) -> Result<()> {
     let payload = i64::from_be_bytes(ping.data.as_slice().try_into().unwrap());
     let pong = make_pong(payload);
     write_packet(stream, pong).await?;
+
+    Ok(())
+}
+
+async fn handle_login(stream: &mut TcpStream) -> Result<()> {
+    let login_packet = read_packet(stream).await?;
+    if login_packet.id != 0x00 {
+        return Err(anyhow!("expected login start packet id 0x00"));
+    }
+
+    let login_start = decode_login_start(&login_packet.data)?;
+    info!("player logging in: {}", login_start.username);
+
+    let success = make_login_success(OFFLINE_UUID, &login_start.username);
+    write_packet(stream, success).await?;
 
     Ok(())
 }

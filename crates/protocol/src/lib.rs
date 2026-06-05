@@ -3,6 +3,7 @@ pub mod varint;
 pub mod packet;
 pub mod status;
 pub mod handshake;
+pub mod login;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
